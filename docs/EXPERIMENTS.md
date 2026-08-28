@@ -193,29 +193,100 @@ The phase-fold method therefore did not improve uncertainty enough to justify a 
 
 ## 13. Final flow-anchor campaign
 
-The final practical calibration strategy returned to the validated regular Sweep and targets the exact Orca working flows:
+The final campaign returned to the validated standard Sweep and targeted exact Orca working-flow midpoints using the same `ΔVFR=4`, `WOBBLE=0.14`, 245 °C, 23-value K grid (`0.030..0.085`, step `0.0025`), and 10 cycles per K.
+
+### Flow 7.82
+
+Transition:
 
 ```text
-3.91
-7.82
-15.6 mm³/s
+5.82 → 9.82 mm³/s
+midpoint = 7.82
 ```
 
-with a common small step (`ΔVFR=4`) around each midpoint.
-
-At the time this document was first created, the `7.82` anchor had been captured and analyzed:
+Validated capture `capture_20260828-141132.npz`:
 
 ```text
-VFR_LOW = 5.82
-VFR_HIGH = 9.82
-midpoint = 7.82
-WOBBLE = 0.14
 K_opt = 0.056113
 bootstrap median = 0.057250
+bootstrap std = 0.002378
 p5–p95 = 0.053188–0.061478
 actual SPS = 37.764
 segments = 230/230
 errors = 0
 ```
 
-The remaining final anchors may be committed later; the final summary should be updated from the corresponding analysis JSON rather than copied from chat logs.
+### Flow 3.91
+
+The first attempt produced an error/invalid artifact and was retried cleanly.
+
+Valid retry `capture_20260828-173411.npz`:
+
+```text
+1.91 → 5.91 mm³/s
+midpoint = 3.91
+K_opt = 0.069986
+bootstrap median = 0.069350
+bootstrap std = 0.002829
+p5–p95 = 0.065224–0.074147
+actual SPS = 37.740
+segments = 230/230
+errors = 0
+```
+
+This anchor is consistent with the already-established direction that lower absolute flow requires higher effective PA.
+
+### Flow 15.6
+
+First run `capture_20260828-171525.npz`:
+
+```text
+13.6 → 17.6 mm³/s
+midpoint = 15.6
+K_opt = 0.060560
+bootstrap median = 0.057304
+bootstrap std = 0.004142
+p5–p95 = 0.052371–0.063843
+actual SPS = 37.717
+segments = 230/230
+errors = 0
+```
+
+Because this high-flow anchor was suspicious under the final criteria, it was repeated with the same parameters.
+
+Repeat `capture_20260828-174159.npz`:
+
+```text
+K_opt = 0.062508
+bootstrap median = 0.061494
+bootstrap std = 0.002997
+p5–p95 = 0.054920–0.062991
+actual SPS = 37.728
+segments = 230/230
+errors = 0
+```
+
+Bootstrap-median difference:
+
+```text
+0.061494 - 0.057304 ≈ 0.00419
+```
+
+The final protocol declared a repeat acceptable only when the two independent medians differed by at most `0.003`. The `15.6` anchor therefore failed validation despite clean sample rate, segment inclusion, and collector health.
+
+## 14. Final experimental conclusion
+
+The project intentionally **did not generate the final Orca 3×3 APA matrix**.
+
+Why:
+
+1. the direct real-trajectory acceleration axis was already shown to be unreliable with the stock ~38 SPS sensor path;
+2. the fallback flow-anchor strategy produced credible low/mid-flow anchors, but the `15.6 mm³/s` anchor failed the pre-declared repeatability criterion;
+3. silently averaging/interpolating that failed anchor would make the final matrix look more certain than the measurements support.
+
+The correct retained result is therefore:
+
+- Q2 stock-load-cell AutoPA Sweep: validated and useful;
+- flow dependence: strongly supported;
+- exact final three-anchor model across the tested range: not fully validated;
+- direct acceleration-dependent APA matrix from the stock sensor: not validated.

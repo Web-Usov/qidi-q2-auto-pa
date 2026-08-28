@@ -4,7 +4,7 @@ Experimental automatic Pressure Advance calibration for the **QIDI Q2** using th
 
 This repository documents and packages the work needed to make [`G0BL1N/autopa`](https://github.com/G0BL1N/autopa) work with QIDI's stock Klipper fork, where the nozzle force sensor is exposed through QIDI's proprietary `probe_air` stack instead of mainline Klipper's `[load_cell]` / `[load_cell_probe]` API.
 
-> **Project status:** Q2 load-cell integration and the standard flow-step AutoPA method are validated. The attempted direct acceleration-dependent APA method is not validated. The final three-anchor campaign also showed that a high-flow anchor can fail repeatability even when the collector is healthy, so no final Orca 3×3 matrix should be presented as measured/validated from this campaign.
+> **Project status:** Q2 load-cell integration and the standard flow-step AutoPA method are validated. The attempted direct acceleration-dependent APA method is not validated. A final practical Orca 3×3 table was produced only after replacing the unstable direct `15.6 mm³/s` anchor with an offline extrapolation from the validated flow series and applying a separately measured manual acceleration correction. It must therefore be described as a **hybrid model**, not nine cells directly measured by the stock load cell.
 
 ## What works
 
@@ -25,22 +25,24 @@ The stock Q2 sensor path delivers only about **37–38 samples/s**. A single sam
 
 The failed real-trajectory method is preserved as **research code**, not as the recommended calibration path. See [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 
-## Final-anchor result
+## Final practical result
 
-A final campaign targeted the exact working volumetric flows `3.91`, `7.82`, and `15.6 mm³/s` with a common `ΔVFR=4` and `WOBBLE=0.14`.
+A final campaign targeted the exact working volumetric flows `3.91`, `7.82`, and `15.6 mm³/s`.
 
-Two useful anchors were obtained:
+Direct accepted anchors:
 
-- midpoint `3.91`: `K_opt ≈ 0.06999`, bootstrap median `≈ 0.06935`;
-- midpoint `7.82`: `K_opt ≈ 0.05611`, bootstrap median `≈ 0.05725`.
+- midpoint `3.91`: bootstrap median `≈ 0.06935`;
+- midpoint `7.82`: bootstrap median `≈ 0.05725`.
 
-The `15.6` anchor failed the project's final repeatability criterion:
+The direct `15.6` centered high-baseline protocol failed repeatability and was rejected. The final high-flow anchor was instead extrapolated from the previously validated equal-step flow series:
 
-- first run bootstrap median `≈ 0.05730`;
-- repeat bootstrap median `≈ 0.06149`;
-- difference `≈ 0.00419`, larger than the pre-declared `0.003` acceptance limit.
+```text
+PA_FLOW_15.6 = 0.05053
+```
 
-Accordingly, the experiment was stopped and **no final Orca APA matrix was generated**. This is a feature of the validation process, not a missing formatting step: unstable anchors are intentionally not hidden by interpolation.
+with a practical uncertainty of roughly `0.0485–0.0525`.
+
+The final Orca table then applies the separately measured manual acceleration correction to these three flow anchors. Full provenance, calculations, and the ready-to-paste table are in [docs/FINAL_RESULTS.md](docs/FINAL_RESULTS.md).
 
 ## Current practical strategy
 
@@ -116,6 +118,7 @@ The planned cleanup is documented in [docs/REPOSITORY_LAYOUT.md](docs/REPOSITORY
 
 ## Documentation
 
+- [Final results and Orca table](docs/FINAL_RESULTS.md)
 - [Installation / rollback](docs/INSTALL.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Experiment history and evidence](docs/EXPERIMENTS.md)

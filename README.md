@@ -4,7 +4,7 @@ Experimental automatic Pressure Advance calibration for the **QIDI Q2** using th
 
 This repository documents and packages the work needed to make [`G0BL1N/autopa`](https://github.com/G0BL1N/autopa) work with QIDI's stock Klipper fork, where the nozzle force sensor is exposed through QIDI's proprietary `probe_air` stack instead of mainline Klipper's `[load_cell]` / `[load_cell_probe]` API.
 
-> **Project status:** research-complete for Q2 load-cell integration and flow-dependent AutoPA. Packaging is still being cleaned up. The repository currently contains both runtime code and the raw research snapshot used to validate it.
+> **Project status:** Q2 load-cell integration and the standard flow-step AutoPA method are validated. The attempted direct acceleration-dependent APA method is not validated. The final three-anchor campaign also showed that a high-flow anchor can fail repeatability even when the collector is healthy, so no final Orca 3×3 matrix should be presented as measured/validated from this campaign.
 
 ## What works
 
@@ -15,7 +15,7 @@ This repository documents and packages the work needed to make [`G0BL1N/autopa`]
 - Use Q2-specific quality thresholds for the real ~37–38 SPS data stream.
 - Reproduce a static/effective PA optimum across independent runs.
 - Measure a clear dependence of effective PA on volumetric-flow level.
-- Bootstrap sweep segments to estimate uncertainty.
+- Bootstrap sweep segments to estimate uncertainty and reject unstable results.
 
 ## What does **not** work reliably
 
@@ -25,17 +25,34 @@ The stock Q2 sensor path delivers only about **37–38 samples/s**. A single sam
 
 The failed real-trajectory method is preserved as **research code**, not as the recommended calibration path. See [docs/LIMITATIONS.md](docs/LIMITATIONS.md).
 
+## Final-anchor result
+
+A final campaign targeted the exact working volumetric flows `3.91`, `7.82`, and `15.6 mm³/s` with a common `ΔVFR=4` and `WOBBLE=0.14`.
+
+Two useful anchors were obtained:
+
+- midpoint `3.91`: `K_opt ≈ 0.06999`, bootstrap median `≈ 0.06935`;
+- midpoint `7.82`: `K_opt ≈ 0.05611`, bootstrap median `≈ 0.05725`.
+
+The `15.6` anchor failed the project's final repeatability criterion:
+
+- first run bootstrap median `≈ 0.05730`;
+- repeat bootstrap median `≈ 0.06149`;
+- difference `≈ 0.00419`, larger than the pre-declared `0.003` acceptance limit.
+
+Accordingly, the experiment was stopped and **no final Orca APA matrix was generated**. This is a feature of the validation process, not a missing formatting step: unstable anchors are intentionally not hidden by interpolation.
+
 ## Current practical strategy
 
 The validated Q2 path is the regular slow/fast in-air `AUTOPA_SWEEP`:
 
-1. keep the PA-gate axis wobble small;
+1. keep the PA-gate axis wobble small but large enough to satisfy Klipper's composite-extrusion guard;
 2. measure load-cell response across a K grid;
 3. use the bd-pressure cost estimator;
 4. bootstrap individual sweep segments;
-5. use the result to characterize PA versus volumetric-flow level.
+5. repeat important anchors and reject values that fail repeatability.
 
-For the final Orca Adaptive PA table used during this research, flow anchors are measured automatically and acceleration correction is kept separate from the stock-load-cell measurement. The provenance of each value must remain explicit; the project does **not** claim that the Q2 stock sensor directly measured the acceleration axis.
+The project does **not** claim that the Q2 stock sensor directly measured a reliable acceleration axis for Orca Adaptive PA.
 
 ## Q2-specific integration
 
@@ -99,6 +116,7 @@ The planned cleanup is documented in [docs/REPOSITORY_LAYOUT.md](docs/REPOSITORY
 
 ## Documentation
 
+- [Installation / rollback](docs/INSTALL.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Experiment history and evidence](docs/EXPERIMENTS.md)
 - [Known limitations](docs/LIMITATIONS.md)
@@ -124,10 +142,9 @@ This work is based on / informed by:
 
 - [`G0BL1N/autopa`](https://github.com/G0BL1N/autopa) — load-cell-driven PA calibration engine and bd-pressure Sweep estimator.
 - [`CNCKitchen/PrusaPATuner`](https://github.com/CNCKitchen/PrusaPATuner) — algorithmic lineage used by upstream autopa Sweep.
-- Mark Struchkov's independent QIDI Q2 Auto-PA research, which documented access to the stock `probe_air` sensor path and practical low-rate polling constraints.
 
 See [CREDITS.md](CREDITS.md) for attribution details.
 
 ## License
 
-The derived autopa code is subject to **GNU AGPL-3.0-or-later**, matching upstream autopa. A full license file and preserved upstream notices are required before treating a cleaned release branch as distributable.
+The derived autopa code is subject to **GNU AGPL-3.0-or-later**, matching upstream autopa. A full top-level license file and preserved upstream notices are required before treating a cleaned release branch as distributable.
